@@ -54,6 +54,12 @@
             margin-bottom: 20px;
             color: #4CAF50;
         }
+        
+        .note {
+            font-size: 14px;
+            color: #666;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -62,15 +68,39 @@
         <h1>購入完了</h1>
         <p>GOODY月額プランの購入手続きが正常に完了しました。</p>
         <p>ご契約いただきありがとうございます。</p>
-        <button id="returnButton">メイン画面に戻る</button>
+        <button id="closeButton">このウィンドウを閉じる</button>
+        <p class="note">このウィンドウは自動的に閉じられます。閉じられない場合は上のボタンをクリックしてください。</p>
     </div>
-
     <script>
-        // メイン画面に戻るボタンの処理
-        document.getElementById('returnButton').addEventListener('click', function() {
-            // メインページに戻る
-            window.location.href = 'goody_plan.html';
-        });
+        // ウィンドウを閉じる関数
+        function closeWindow() {
+            if (window.opener && !window.opener.closed) {
+                // 親ウィンドウが存在する場合は通知を試みる
+                try {
+                    window.opener.postMessage('checkout_complete', '*');
+                } catch (e) {
+                    console.error('親ウィンドウへの通知に失敗:', e);
+                }
+            }
+            
+            // ウィンドウを閉じる
+            window.close();
+            
+            // 閉じられない場合のフォールバック
+            setTimeout(() => {
+                document.body.innerHTML = `
+                    <div class="container">
+                        <h1>購入完了</h1>
+                        <p>GOODY月額プランの購入手続きが正常に完了しました。</p>
+                        <p>ブラウザの制限によりウィンドウを自動的に閉じることができませんでした。</p>
+                        <p>このタブを手動で閉じて、元の画面に戻ってください。</p>
+                    </div>
+                `;
+            }, 500);
+        }
+        
+        // 閉じるボタンのイベント処理
+        document.getElementById('closeButton').addEventListener('click', closeWindow);
         
         // URLパラメータをクリアする関数
         function cleanUrl() {
@@ -83,8 +113,14 @@
             window.history.replaceState({}, document.title, url.pathname + url.search);
         }
         
-        // ページ読み込み時にURLパラメータをクリア
-        window.addEventListener('DOMContentLoaded', cleanUrl);
+        // ページ読み込み時の処理
+        window.addEventListener('DOMContentLoaded', () => {
+            // URLパラメータをクリア
+            cleanUrl();
+            
+            // 15秒後自動的にウィンドウを閉じる試み
+            setTimeout(closeWindow, 15000);
+        });
     </script>
 </body>
 </html>
