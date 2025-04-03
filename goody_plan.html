@@ -471,8 +471,11 @@
             });
         }
         
-        // 契約していないプランを有効化
+        // 契約していないプランを有効化 - プラン名対応バージョン
         function enableNonSubscribedPlans(subscribedPlans) {
+            // デバッグ用にデータを出力
+            console.log("受信したサブスクリプションデータ:", subscribedPlans);
+            
             // いったんすべて有効化
             document.querySelectorAll('.plan-card').forEach(card => {
                 card.classList.remove('disabled');
@@ -483,13 +486,28 @@
             
             // 契約中プランを無効化
             subscribedPlans.forEach(sub => {
-                const planId = sub.plan;
-                const card = document.querySelector(`.plan-card[data-plan-id="${planId}"]`);
-                if (card) {
-                    card.classList.add('disabled');
-                    const button = card.querySelector('button');
-                    button.disabled = true;
-                    button.textContent = '契約中';
+                const planName = sub.plan; // スプレッドシートからはプラン名が返される
+                console.log(`処理中のプラン: ${planName}`);
+                
+                // プラン名に対応するプランIDを探す
+                const matchingPlan = PLANS.find(p => p.name === planName);
+                
+                if (matchingPlan) {
+                    console.log(`一致するプランを見つけました: ID=${matchingPlan.id}, 名前=${matchingPlan.name}`);
+                    const planId = matchingPlan.id;
+                    const card = document.querySelector(`.plan-card[data-plan-id="${planId}"]`);
+                    
+                    if (card) {
+                        card.classList.add('disabled');
+                        const button = card.querySelector('button');
+                        button.disabled = true;
+                        button.textContent = '契約中';
+                        console.log(`プラン「${planName}」を無効化しました`);
+                    } else {
+                        console.log(`プランカードが見つかりません: ${planId}`);
+                    }
+                } else {
+                    console.log(`一致するプランが見つかりません: ${planName}`);
                 }
             });
         }
@@ -655,7 +673,7 @@
             }, 15000);
         }
         
-        // 契約情報を表示
+        // 契約情報を表示 - プラン名対応バージョン
         function displayCustomerInfo(data) {
             if (!data.subscriptions || data.subscriptions.length === 0) {
                 customerInfo.style.display = 'none';
@@ -664,11 +682,12 @@
             
             customerInfo.style.display = 'block';
             
-            // 契約中のプラン名だけを表示（購入日は表示しない）
+            // 契約中のプラン名をそのまま表示（購入日は表示しない）
             let html = '<ul>';
             data.subscriptions.forEach(sub => {
-                const planInfo = PLANS.find(p => p.id === sub.plan) || { name: `プラン${sub.plan}` };
-                html += `<li>${planInfo.name}</li>`;
+                // スプレッドシートから返されるプラン名をそのまま使用
+                const planName = sub.plan;
+                html += `<li>${planName}</li>`;
             });
             html += '</ul>';
             
