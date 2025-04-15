@@ -145,7 +145,7 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            margin-top: 30px; /* 「契約はありません」メッセージとプランリストの間のスペースを追加 */
+            margin-top: 30px; /* "契約はありません"メッセージとプランリストの間のスペースを追加 */
         }
         
         .plan-item {
@@ -440,6 +440,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             setupEventListeners();
             
+            // 初期状態で全てのプランボタンを無効化
+            disableAllPlans();
+            
             // URLパラメータから決済結果を取得
             const urlParams = new URLSearchParams(window.location.search);
             const checkoutResult = urlParams.get('checkout_result');
@@ -673,6 +676,9 @@
                 // 認証成功後、契約状況を確認
                 showVerificationSuccess();
                 checkSubscription();
+                
+                // 認証成功後にプランボタンを有効化
+                enableAllPlanButtons();
             } else {
                 showMessage('認証コードが正しくありません', 'error');
             }
